@@ -40,12 +40,12 @@ the exercise remains free and deterministic.
 
 The tool accepts:
 
-- `word`: one word to look up;
-- `language`: the language of that word.
+- `term`: one vocabulary word or short phrase to look up;
+- `language`: the language of that term.
 
 It returns:
 
-- the normalized word;
+- the normalized term;
 - the language;
 - the part of speech;
 - a short definition.
@@ -60,14 +60,14 @@ Create these records:
 
 ```java
 public record VocabularyLookupArguments(
-        String word,
+        String term,
         String language) {
 }
 ```
 
 ```java
 public record VocabularyEntry(
-        String word,
+        String term,
         String language,
         String partOfSpeech,
         String definition) {
@@ -94,20 +94,20 @@ Create this resource:
 ```json
 {
   "name": "lookup_vocabulary_entry",
-  "description": "Looks up trusted metadata for one vocabulary word in a specified language.",
+  "description": "Looks up trusted metadata for one vocabulary term in a specified language.",
   "parameters": {
     "type": "object",
     "properties": {
-      "word": {
+      "term": {
         "type": "string",
-        "description": "The single vocabulary word to look up."
+        "description": "The vocabulary word or short phrase to look up."
       },
       "language": {
         "type": "string",
-        "description": "The language of the word, for example English."
+        "description": "The language of the term, for example English."
       }
     },
-    "required": ["word", "language"]
+    "required": ["term", "language"]
   }
 }
 ```
@@ -126,7 +126,7 @@ properties rather than comparing the complete JSON text:
 
 1. the tool name is `lookup_vocabulary_entry`;
 2. the parameters type is `object`;
-3. `word` and `language` are declared as strings;
+3. `term` and `language` are declared as strings;
 4. both names appear in `required`;
 5. the description explains that the data is trusted.
 
@@ -153,9 +153,17 @@ Complete the final section of `observations.md`:
 
 ## Optional second-hour extension
 
-Design validation rules for future model-generated arguments, but do not
-implement them yet. Consider blank values, unexpected properties, unsupported
-languages, multi-word input, maximum length, and Unicode.
+Design and implement business validation for future model-generated arguments.
+The validator returns all violations, remains separate from normalization, and
+checks blank values, supported languages, whitespace, bounded short phrases,
+maximum lengths, Unicode letters, internal hyphens, and apostrophes. Unexpected
+JSON properties remain a parsing concern for Session 4B.
+
+Extension result:
+
+- `VocabularyLookupArgumentsValidator` implements the policy;
+- 16 focused validator tests cover valid and invalid inputs;
+- the complete deterministic suite contains 35 passing tests.
 
 ## Reference
 
