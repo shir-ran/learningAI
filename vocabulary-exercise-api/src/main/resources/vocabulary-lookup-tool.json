@@ -1,0 +1,18 @@
+{
+  "name": "lookup_vocabulary_entry",
+  "description": "Looks up trusted metadata for one vocabulary word in a specified language.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "word": {
+        "type": "string",
+        "description": "The single vocabulary word to look up."
+      },
+      "language": {
+        "type": "string",
+        "description": "The language of the word, for example English."
+      }
+    },
+    "required": ["word", "language"]
+  }
+}
