@@ -1,0 +1,37 @@
+[
+  {
+    "nativeLanguage": "Hebrew",
+    "targetLanguage": "English",
+    "cefrLevel": "A1",
+    "targetWord": "apple",
+    "why": "simple concrete noun."
+  },
+  {
+    "nativeLanguage": "Hebrew",
+    "targetLanguage": "English",
+    "cefrLevel": "B1",
+    "targetWord": "achieve",
+    "why": "familiar verb."
+  },
+  {
+    "nativeLanguage": "Hebrew",
+    "targetLanguage": "English",
+    "cefrLevel": "B1",
+    "targetWord": "bank",
+    "why": "ambiguous word."
+  },
+  {
+      "nativeLanguage": "Hebrew",
+      "targetLanguage": "English",
+      "cefrLevel": "B2",
+      "targetWord": "despite",
+      "why": "grammar-sensitive word."
+  },
+    {
+        "nativeLanguage": "Hebrew",
+        "targetLanguage": "English",
+        "cefrLevel": "C1",
+        "targetWord": "nuanced",
+        "why": "advanced adjective."
+    }
+]

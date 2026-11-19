@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "sentence": {
+      "type": "string",
+      "description": "One English fill-in-the-blank sentence appropriate for the requested CEFR level, containing exactly one ________ placeholder for the target word."
+    },
+    "options": {
+      "type": "array",
+      "description": "Exactly three distinct single-word English options that could plausibly complete the sentence.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "correctAnswer": {
+      "type": "string",
+      "description": "The requested target word exactly as provided; it must appear in options."
+    },
+    "explanation": {
+      "type": "string",
+      "description": "a one-sentence explanation in the learner's native language, it can explain the meaning of the word and/or the context in which it is used."
+    }
+  },
+  "required": [
+    "sentence",
+    "options",
+    "correctAnswer",
+    "explanation"
+  ]
+}
