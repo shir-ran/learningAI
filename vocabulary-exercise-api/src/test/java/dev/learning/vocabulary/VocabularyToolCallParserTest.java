@@ -1,6 +1,9 @@
 package dev.learning.vocabulary;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
 
 import java.util.NoSuchElementException;
@@ -61,9 +64,12 @@ public class VocabularyToolCallParserTest {
             {
               "candidates": [{
                 "content": {
+                  "role": "model",
                   "parts": [{
+                    "thoughtSignature": "dGVzdA==",
                     "functionCall": {
                       "name": "lookup_vocabulary_entry",
+                      "id": "bank-call-1",
                       "args": {
                         "term": "bank",
                         "language": "English"
@@ -259,6 +265,69 @@ public class VocabularyToolCallParserTest {
         assertEquals("English", entry.language());
         assertEquals("noun", entry.partOfSpeech());
         assertEquals("Land beside a river.", entry.definition());
+    }
+
+    @Test
+    void buildsFollowUpPayloadFromVocabularyLookup() throws JsonProcessingException {
+        var mapper = new ObjectMapper();
+        var lookup = new InMemoryVocabularyLookupTool();
+        lookup.addEntry(
+                new VocabularyLookupArguments("bank", "English"),
+                new VocabularyEntry("bank", "English", "noun", "Land beside a river."));
+
+        var content = mapper.readTree(bankFixture)
+                .get("candidates").get(0)
+                .get("content");
+        var result = lookup.lookup(VocabularyToolCallParser.parse(bankFixture).orElseThrow());
+
+        String prompt = "Create an exercise for bank using its river meaning.";
+
+        var payload = GeminiToolResponsePayloadBuilder.buildPayload(
+                prompt,
+                content,
+                result
+        );
+        var sent = mapper.readTree(mapper.writeValueAsString(payload)).path("contents");
+        assertEquals(3, sent.size());
+        assertEquals("user", sent.at("/0/role").textValue());
+        assertEquals(prompt, sent.at("/0/parts/0/text").textValue());
+        assertEquals(content, sent.get(1));
+        assertEquals("user", sent.at("/2/role").textValue());
+        var sentResult = sent.at("/2/parts/0/functionResponse");
+        assertEquals("lookup_vocabulary_entry", sentResult.path("name").textValue());
+        assertEquals("bank-call-1", sentResult.path("id").textValue());
+        assertEquals("Land beside a river.", sentResult.at("/response/definition").textValue());
+    }
+
+    @Test
+    void buildsFollowUpWhenTextPrecedesFunctionCall() throws JsonProcessingException {
+        var mapper = new ObjectMapper();
+        var content = mapper.readTree(bankFixture).at("/candidates/0/content");
+        var parts = (ArrayNode) content.path("parts");
+        parts.insert(0, mapper.createObjectNode().put("text", "I'll look up that term."));
+        var entry = new VocabularyEntry("bank", "English", "noun", "Land beside a river.");
+
+        var payload = GeminiToolResponsePayloadBuilder.buildPayload("Create an exercise.", content, entry);
+        var response = payload.at("/contents/2/parts/0/functionResponse");
+
+        assertEquals(content, payload.at("/contents/1"));
+        assertEquals("lookup_vocabulary_entry", response.path("name").textValue());
+        assertEquals("bank-call-1", response.path("id").textValue());
+    }
+
+    @Test
+    void omitsIdWhenFunctionCallHasNoId() throws JsonProcessingException {
+        var mapper = new ObjectMapper();
+        var content = mapper.readTree(bankFixture).at("/candidates/0/content");
+        var call = (ObjectNode) content.at("/parts/0/functionCall");
+        call.remove("id");
+        var entry = new VocabularyEntry("bank", "English", "noun", "Land beside a river.");
+
+        var payload = GeminiToolResponsePayloadBuilder.buildPayload("Create an exercise.", content, entry);
+        var response = payload.at("/contents/2/parts/0/functionResponse");
+
+        assertEquals("lookup_vocabulary_entry", response.path("name").textValue());
+        assertFalse(response.has("id"));
     }
 
     @Test
